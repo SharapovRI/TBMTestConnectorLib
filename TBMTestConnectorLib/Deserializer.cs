@@ -31,7 +31,7 @@ namespace TBMTestConnectorLib
                     trades.Add(new Trade
                     {
                         Id = trade[0].ToString(),
-                        Time = new DateTimeOffset(new DateTime(), TimeSpan.Zero).Add(TimeSpan.FromMilliseconds(Decimal.ToDouble(trade[1]))),
+                        Time = new DateTimeOffset(DateTime.UnixEpoch, TimeSpan.Zero).Add(TimeSpan.FromMilliseconds(Decimal.ToDouble(trade[1]))),
                         Side = trade[2] >= 0 ? "buy" : "sell",
                         Amount = Math.Abs(trade[2]),
                         Price = trade[3],
@@ -42,6 +42,41 @@ namespace TBMTestConnectorLib
             }
 
             return trades;
+        }
+
+        public static IEnumerable<Candle> DeserializeRestCandles(string pair, string response)
+        {
+            List<List<decimal>> listOfCandles = [];
+
+            try
+            {
+                listOfCandles = JsonConvert.DeserializeObject<List<List<decimal>>>(response) ?? [];
+            }
+            catch (JsonException ex)
+            {
+                throw new FormatException("Invalid JSON format.", ex);
+            }
+
+            List<Candle> candles = new List<Candle>();
+            foreach (var candle in listOfCandles)
+            {
+                try
+                {
+                    candles.Add(new Candle
+                    {
+                        OpenTime = new DateTimeOffset(DateTime.UnixEpoch, TimeSpan.Zero).Add(TimeSpan.FromMilliseconds(Decimal.ToDouble(candle[0]))),
+                        OpenPrice = candle[1],
+                        ClosePrice = candle[2],
+                        HighPrice = candle[3],
+                        LowPrice = candle[4],
+                        TotalVolume = candle[5],
+                        Pair = pair,
+                    });
+                }
+                catch { }
+            }
+
+            return candles;
         }
     }
 }

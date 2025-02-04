@@ -37,7 +37,8 @@ namespace TBMTestConnectorLib.Models
         /// <summary>
         /// Partial (Общая сумма сделок)
         /// </summary>
-        public decimal TotalPrice { get; set; }
+        //public decimal TotalPrice { get; set; } //убрал, потому что api не дает информацию о сумме вместе с остальным запросом и для получения общей суммы нужно делать
+                                                  //два отдельных запроса для short и long и информация доступна не для всех symbols
 
         /// <summary>
         /// Partial (Общий объем)

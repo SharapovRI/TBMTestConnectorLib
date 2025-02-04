@@ -7,6 +7,9 @@ using TBMTestConnectorLib.Interfaces;
 using TBMTestConnectorLib.Models;
 using RestSharp;
 using Newtonsoft.Json;
+using System.Web;
+using System.Collections.Specialized;
+using System.Collections;
 
 namespace TBMTestConnectorLib
 {
@@ -84,9 +87,41 @@ namespace TBMTestConnectorLib
             return Deserializer.DeserializeRestTrades(pair, response.Content);
         }
 
-        public Task<IEnumerable<Candle>> GetCandleSeriesAsync(string pair, int periodInSec, DateTimeOffset? from, DateTimeOffset? to = null, long? count = 0)
+        public async Task<IEnumerable<Candle>> GetCandleSeriesAsync(string pair, int periodInSec, DateTimeOffset? from, DateTimeOffset? to = null, long? count = 0)
         {
-            throw new NotImplementedException();
+            var timeFrame = Helper.SecondsToTimeFrame(periodInSec);
+            string baseUrl = $"https://api-pub.bitfinex.com/v2/candles/trade:{timeFrame}:t{pair}/hist";
+            var queryParams = new NameValueCollection();
+
+            if (from.HasValue)
+            {
+                queryParams["start"] = from.Value.ToUnixTimeMilliseconds().ToString();
+            }
+
+            if (to.HasValue)
+            {
+                queryParams["end"] = to.Value.ToUnixTimeMilliseconds().ToString();
+            }
+
+            if (count.HasValue && count > 0)
+            {
+                queryParams["limit"] = count.ToString();
+            }
+
+            var uriBuilder = new UriBuilder(baseUrl) { Query = string.Join("&", queryParams.AllKeys.Select(key => $"{key}={queryParams[key]}")) };
+
+            var options = new RestClientOptions(uriBuilder.ToString());
+            var client = new RestClient(options);
+            var request = new RestRequest("");
+            request.AddHeader("accept", "application/json");
+            var response = await client.GetAsync(request);
+
+            if (string.IsNullOrEmpty(response.Content))
+            {
+                throw new InvalidOperationException("Response content is null or empty.");
+            }
+
+            return Deserializer.DeserializeRestCandles(pair, response.Content);
         }
 
         #endregion
