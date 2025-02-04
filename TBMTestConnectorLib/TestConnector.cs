@@ -68,9 +68,20 @@ namespace TBMTestConnectorLib
         #region REST
 
 
-        public Task<IEnumerable<Trade>> GetNewTradesAsync(string pair, int maxCount)
+        public async Task<IEnumerable<Trade>> GetNewTradesAsync(string pair, int maxCount)
         {
-            throw new NotImplementedException();
+            var options = new RestClientOptions($"https://api-pub.bitfinex.com/v2/trades/t{pair}/hist?limit={maxCount}&sort=-1");
+            var client = new RestClient(options);
+            var request = new RestRequest("");
+            request.AddHeader("accept", "application/json");
+            var response = await client.GetAsync(request);
+
+            if (string.IsNullOrEmpty(response.Content))
+            {
+                throw new InvalidOperationException("Response content is null or empty.");
+            }
+
+            return Deserializer.DeserializeRestTrades(pair, response.Content);
         }
 
         public Task<IEnumerable<Candle>> GetCandleSeriesAsync(string pair, int periodInSec, DateTimeOffset? from, DateTimeOffset? to = null, long? count = 0)
