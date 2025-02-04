@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TBMTestConnectorLib.Models;
 
-namespace ConnectorTest
+namespace TBMTestConnectorLib.Interfaces
 {
     interface ITestConnector
     {
