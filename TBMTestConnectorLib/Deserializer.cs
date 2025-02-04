@@ -78,5 +78,36 @@ namespace TBMTestConnectorLib
 
             return candles;
         }
+
+        public static Ticker DeserializeRestTicker(string pair, string response)
+        {
+            List<decimal> tickerInfo = [];
+
+            try
+            {
+                tickerInfo = JsonConvert.DeserializeObject<List<decimal>>(response) ?? [];
+            }
+            catch (JsonException ex)
+            {
+                throw new FormatException("Invalid JSON format.", ex);
+            }
+
+            Ticker ticker = new Ticker()
+            {
+                Bid = tickerInfo[0],
+                BidSize = tickerInfo[1],
+                Ask = tickerInfo[2],
+                AskSize = tickerInfo[3],
+                DailyChange = tickerInfo[4],
+                DailyChangeRelative = tickerInfo[5],
+                LastPrice = tickerInfo[6],
+                Volume = tickerInfo[7],
+                High = tickerInfo[8],
+                Low = tickerInfo[9],
+                Pair = pair,
+            };
+
+            return ticker;
+        }
     }
 }

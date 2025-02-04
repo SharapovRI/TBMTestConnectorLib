@@ -124,6 +124,22 @@ namespace TBMTestConnectorLib
             return Deserializer.DeserializeRestCandles(pair, response.Content);
         }
 
+        public async Task<Ticker> GetTickerInfoAsync(string pair)
+        {
+            var options = new RestClientOptions($"https://api-pub.bitfinex.com/v2/ticker/t{pair}");
+            var client = new RestClient(options);
+            var request = new RestRequest("");
+            request.AddHeader("accept", "application/json");
+            var response = await client.GetAsync(request);
+
+            if (string.IsNullOrEmpty(response.Content))
+            {
+                throw new InvalidOperationException("Response content is null or empty.");
+            }
+
+            return Deserializer.DeserializeRestTicker(pair, response.Content);
+        }
+
         #endregion
 
         public void SubscribeCandles(string pair, int periodInSec, DateTimeOffset? from = null, DateTimeOffset? to = null, long? count = 0)
@@ -145,5 +161,6 @@ namespace TBMTestConnectorLib
         {
             throw new NotImplementedException();
         }
+
     }
 }
