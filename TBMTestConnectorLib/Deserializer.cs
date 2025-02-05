@@ -8,9 +8,9 @@ using TBMTestConnectorLib.Models;
 
 namespace TBMTestConnectorLib
 {
-    public static class Deserializer
+    internal static class Deserializer
     {
-        public static IEnumerable<Trade> DeserializeRestTrades(string pair, string response)
+        internal static IEnumerable<Trade> DeserializeRestTrades(string pair, string response)
         {
             List<List<decimal>> listOfTrades = [];
 
@@ -44,7 +44,7 @@ namespace TBMTestConnectorLib
             return trades;
         }
 
-        public static IEnumerable<Candle> DeserializeRestCandles(string pair, string response)
+        internal static IEnumerable<Candle> DeserializeRestCandles(string pair, string response, string timeFrame)
         {
             List<List<decimal>> listOfCandles = [];
 
@@ -71,6 +71,7 @@ namespace TBMTestConnectorLib
                         LowPrice = candle[4],
                         TotalVolume = candle[5],
                         Pair = pair,
+                        Period = Helper.TimeFrameToSeconds(timeFrame),
                     });
                 }
                 catch { }
@@ -79,7 +80,7 @@ namespace TBMTestConnectorLib
             return candles;
         }
 
-        public static Ticker DeserializeRestTicker(string pair, string response)
+        internal static Ticker DeserializeRestTicker(string pair, string response)
         {
             List<decimal> tickerInfo = [];
 

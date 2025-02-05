@@ -50,5 +50,10 @@ namespace TBMTestConnectorLib.Models
         /// </summary>
         public DateTimeOffset OpenTime { get; set; }
 
+        /// <summary>
+        /// Период в секундах
+        /// </summary>
+        public int Period { get; set; } //добавил Period для удобства, если например будет подписка на несколько таймфреймов одновременно
+
     }
 }

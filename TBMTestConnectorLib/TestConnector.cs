@@ -17,11 +17,6 @@ namespace TBMTestConnectorLib
 {
     public class TestConnector : ITestConnector
     {
-        public event Action<Trade> NewBuyTrade;
-        public event Action<Trade> NewSellTrade;
-        public event Action<Candle> CandleSeriesProcessing;
-
-
         public async Task<int> GetPlatformStatusAsync()
         {
             var options = new RestClientOptions("https://api-pub.bitfinex.com/v2/platform/status");
@@ -71,7 +66,6 @@ namespace TBMTestConnectorLib
         }
 
         #region REST
-
 
         public async Task<IEnumerable<Trade>> GetNewTradesAsync(string pair, int maxCount)
         {
@@ -123,7 +117,7 @@ namespace TBMTestConnectorLib
                 throw new InvalidOperationException("Response content is null or empty.");
             }
 
-            return Deserializer.DeserializeRestCandles(pair, response.Content);
+            return Deserializer.DeserializeRestCandles(pair, response.Content, timeFrame);
         }
 
         public async Task<Ticker> GetTickerInfoAsync(string pair)
@@ -143,10 +137,17 @@ namespace TBMTestConnectorLib
         }
 
         #endregion
-                
+
+        #region WebSocket
+
+        public event Action<Trade> NewBuyTrade;
+        public event Action<Trade> NewSellTrade;
+        public event Action<Candle> CandleSeriesProcessing;
+
         private WebSocket _webSocket;
         private readonly Dictionary<string, int> _channelIds = new Dictionary<string, int>();
         private readonly Dictionary<int, string> _tradePairs = new Dictionary<int, string>();
+        private readonly Dictionary<int, string> _candleKeys = new Dictionary<int, string>();
 
         public async Task ConnectAsync()
         {
@@ -157,7 +158,21 @@ namespace TBMTestConnectorLib
             };
             _webSocket.Connect();
         }        
- 
+
+        public void SubscribeCandles(string pair, int periodInSec, DateTimeOffset? from = null, DateTimeOffset? to = null, long? count = 0)
+        {
+            //from и to на bitfinex можно использовать только для фандинга
+            var key = $"trade:{Helper.SecondsToTimeFrame(periodInSec)}:t{pair}";            
+            var msg = new
+            {
+                @event = "subscribe",
+                channel = "candles",
+                key
+            };
+
+            SendMessage(msg);
+        }
+
         public void SubscribeTrades(string pair, int maxCount = 100)
         {
             var msg = new
@@ -168,12 +183,14 @@ namespace TBMTestConnectorLib
             };
 
             SendMessage(msg);
-        }        
+        }
 
-        public void UnsubscribeTrades(string pair)
+        public void UnsubscribeCandles(string pair)
         {
-            var key = $"trades:{pair}";
-            var channelId = _channelIds[key];
+            var key = $"{pair}";
+            var channelId = _candleKeys.FirstOrDefault(x => x.Value.Split(':')[2] == pair).Key;
+            _candleKeys.Remove(channelId);
+
             var msg = new
             {
                 @event = "unsubscribe",
@@ -183,14 +200,19 @@ namespace TBMTestConnectorLib
             SendMessage(msg);
         }
 
-        public void SubscribeCandles(string pair, int periodInSec, DateTimeOffset? from = null, DateTimeOffset? to = null, long? count = 0)
+        public void UnsubscribeTrades(string pair)
         {
-            throw new NotImplementedException();
-        }
+            var key = $"{pair}";
+            var channelId = _tradePairs.FirstOrDefault(x => x.Value == pair).Key;
+            _tradePairs.Remove(channelId);
 
-        public void UnsubscribeCandles(string pair)
-        {
-            throw new NotImplementedException();
+            var msg = new
+            {
+                @event = "unsubscribe",
+                chanId = channelId
+            };
+
+            SendMessage(msg);
         }
 
         private void ProcessMessage(string message)
@@ -222,6 +244,11 @@ namespace TBMTestConnectorLib
                 {
                     _tradePairs[channelId] = json["pair"].ToString();
                 }
+
+                if (json["channel"]?.ToString() == "candles")
+                {
+                    _candleKeys[channelId] = json["key"].ToString();
+                }
             }
         }
 
@@ -231,17 +258,28 @@ namespace TBMTestConnectorLib
 
             foreach (var channelKey in _channelIds.Keys)
             {
-                if (_channelIds[channelKey] == channelId && json[1].ToString() != "hb")
+                if (_channelIds[channelKey] == channelId && json[1]?.ToString() != "hb")
                 {
                     if (channelKey.StartsWith("trade"))
                     {
-                        if (json[1].Type == JTokenType.Array)
+                        if (json[1]?.Type == JTokenType.Array)
                         {
                             HandleTrades(channelId, json[1]);
                         }
-                        else
+                        else if (json[1]?.ToString() == "te")
                         {
                             HandleTradeMessage(channelId, json[2]);
+                        }
+                    }
+                    else if (channelKey.StartsWith("candles") && json[1]?.Type == JTokenType.Array && json[1]?.Count() > 0)
+                    {
+                        if (json[1][0]?.Type == JTokenType.Array)
+                        {
+                            HandleCandles(channelId, json[1]);
+                        }
+                        else
+                        {
+                            HandleCandleMessage(channelId, json[1]);
                         }
                     }
                     break;
@@ -279,10 +317,39 @@ namespace TBMTestConnectorLib
             }
         }
 
+        private void HandleCandles(int channelId, JToken candles)
+        {
+            foreach (var candle in candles)
+            {
+                HandleCandleMessage(channelId, candle);
+            }
+        }
+
+        private void HandleCandleMessage(int channelId, JToken data)
+        {
+            var key = _candleKeys[channelId].ToString().Split(':');
+
+            var candle = new Candle
+            {
+                OpenTime = DateTimeOffset.FromUnixTimeMilliseconds((long)data[0]),
+                OpenPrice = (decimal)data[1],
+                ClosePrice = (decimal)data[2],
+                HighPrice = (decimal)data[3],
+                LowPrice = (decimal)data[4],
+                TotalVolume = (decimal)data[5],
+                Pair = key[2].Replace("t", ""),
+                Period = Helper.TimeFrameToSeconds(key[1])
+            };
+
+            CandleSeriesProcessing?.Invoke(candle);
+        }
+
         private void SendMessage(object message)
         {
             var json = JsonConvert.SerializeObject(message);
             _webSocket.Send(json);
         }
+
+        #endregion
     }
 }
