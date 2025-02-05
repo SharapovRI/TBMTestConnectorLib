@@ -1,0 +1,131 @@
+﻿<Window x:Class="TestConnectorGUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TestConnectorGUI"
+        mc:Ignorable="d"
+        Title="MainWindow" WindowState="Maximized">
+    <Grid>
+        <TabControl>
+            <TabItem Header="REST">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <Grid Grid.Column="0" Margin="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Button Content="Load Trades" Command="{Binding LoadTradesCommand}" Grid.Row="0" Margin="10"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1">
+                            <ListView ItemsSource="{Binding TradesRest}">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Id}"/>
+                                        <GridViewColumn Header="Pair" DisplayMemberBinding="{Binding Pair}"/>
+                                        <GridViewColumn Header="Price" DisplayMemberBinding="{Binding Price}"/>
+                                        <GridViewColumn Header="Amount" DisplayMemberBinding="{Binding Amount}"/>
+                                        <GridViewColumn Header="Side" DisplayMemberBinding="{Binding Side}"/>
+                                        <GridViewColumn Header="Time" DisplayMemberBinding="{Binding Time}"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </ScrollViewer>
+                    </Grid>
+                    
+                    <Grid Grid.Column="1" Margin="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Button Content="Load Candles" Command="{Binding LoadCandlesCommand}" Grid.Row="0" Margin="10"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1">
+                            <ListView ItemsSource="{Binding CandlesRest}">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="Pair" DisplayMemberBinding="{Binding Pair}"/>
+                                        <GridViewColumn Header="Open" DisplayMemberBinding="{Binding OpenPrice}"/>
+                                        <GridViewColumn Header="Close" DisplayMemberBinding="{Binding ClosePrice}"/>
+                                        <GridViewColumn Header="High" DisplayMemberBinding="{Binding HighPrice}"/>
+                                        <GridViewColumn Header="Low" DisplayMemberBinding="{Binding LowPrice}"/>
+                                        <GridViewColumn Header="Time" DisplayMemberBinding="{Binding OpenTime}"/>
+                                        <GridViewColumn Header="TotalVolume" DisplayMemberBinding="{Binding TotalVolume}"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+            </TabItem>
+            <TabItem Header="WebSocket">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+
+                    <Grid Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="10">
+                            <Button Content="Подписаться на сделки" Command="{Binding SubscribeTradesCommand}" Margin="5"/>
+                            <Button Content="Отписаться от сделок" Command="{Binding UnsubscribeTradesCommand}" Margin="5"/>
+                        </StackPanel>
+
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1" Margin="5">
+                            <ListView ItemsSource="{Binding Trades}">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Id}"/>
+                                        <GridViewColumn Header="Pair" DisplayMemberBinding="{Binding Pair}"/>
+                                        <GridViewColumn Header="Price" DisplayMemberBinding="{Binding Price}"/>
+                                        <GridViewColumn Header="Amount" DisplayMemberBinding="{Binding Amount}"/>
+                                        <GridViewColumn Header="Side" DisplayMemberBinding="{Binding Side}"/>
+                                        <GridViewColumn Header="Time" DisplayMemberBinding="{Binding Time}"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </ScrollViewer>
+                    </Grid>
+                    <Grid Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="10">
+                            <Button Content="Подписаться на свечи" Command="{Binding SubscribeCandlesCommand}" Margin="5"/>
+                            <Button Content="Отписаться от свечей" Command="{Binding UnsubscribeCandlesCommand}" Margin="5"/>
+                        </StackPanel>
+                        
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1" Margin="5">
+                            <ListView ItemsSource="{Binding Candles}">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="Pair" DisplayMemberBinding="{Binding Pair}"/>
+                                        <GridViewColumn Header="Open" DisplayMemberBinding="{Binding OpenPrice}"/>
+                                        <GridViewColumn Header="Close" DisplayMemberBinding="{Binding ClosePrice}"/>
+                                        <GridViewColumn Header="High" DisplayMemberBinding="{Binding HighPrice}"/>
+                                        <GridViewColumn Header="Low" DisplayMemberBinding="{Binding LowPrice}"/>
+                                        <GridViewColumn Header="Time" DisplayMemberBinding="{Binding OpenTime}"/>
+                                        <GridViewColumn Header="TotalVolume" DisplayMemberBinding="{Binding TotalVolume}"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

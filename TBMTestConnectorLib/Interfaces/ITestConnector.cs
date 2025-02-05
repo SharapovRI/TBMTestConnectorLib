@@ -5,7 +5,7 @@ using TBMTestConnectorLib.Models;
 
 namespace TBMTestConnectorLib.Interfaces
 {
-    interface ITestConnector
+    public interface ITestConnector
     {
         #region Rest
 
@@ -16,7 +16,7 @@ namespace TBMTestConnectorLib.Interfaces
         #endregion
 
         #region Socket
-
+        Task ConnectAsync();
 
         event Action<Trade> NewBuyTrade;
         event Action<Trade> NewSellTrade;
