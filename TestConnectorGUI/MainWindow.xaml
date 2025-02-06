@@ -126,6 +126,23 @@
                     </Grid>
                 </Grid>
             </TabItem>
+            <TabItem Header="Balance">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Button Content="Load Balances" Command="{Binding LoadBalancesCommand}" Margin="10" HorizontalAlignment="Left"/>
+
+                    <DataGrid Grid.Row="1" Margin="10" AutoGenerateColumns="False" ItemsSource="{Binding Balances}" IsReadOnly="true">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Currency" Binding="{Binding Path=Currency}" Width="*"/>
+                            <DataGridTextColumn Header="Balance" Binding="{Binding Path=Balance, StringFormat=N2}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>
